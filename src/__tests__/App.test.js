@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   waitForElementToBeRemoved,
 } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
@@ -33,7 +34,7 @@ test("creates a new question when the form is submitted", async () => {
   // click form page
   fireEvent.click(screen.queryByText("New Question"));
 
-  // fill out form
+  // fill out all form fields (including missing answer3 and answer4)
   fireEvent.change(screen.queryByLabelText(/Prompt/), {
     target: { value: "Test Prompt" },
   });
@@ -43,12 +44,23 @@ test("creates a new question when the form is submitted", async () => {
   fireEvent.change(screen.queryByLabelText(/Answer 2/), {
     target: { value: "Test Answer 2" },
   });
+  fireEvent.change(screen.queryByLabelText(/Answer 3/), {
+    target: { value: "Test Answer 3" },
+  });
+  fireEvent.change(screen.queryByLabelText(/Answer 4/), {
+    target: { value: "Test Answer 4" },
+  });
   fireEvent.change(screen.queryByLabelText(/Correct Answer/), {
     target: { value: "1" },
   });
 
-  // submit form
-  fireEvent.submit(screen.queryByText(/Add Question/));
+  // submit form — use click on button (safer than fireEvent.submit)
+  fireEvent.click(screen.queryByText(/Add Question/));
+
+  // wait for form to clear (submission done)
+  await waitFor(() =>
+    expect(screen.queryByLabelText(/Prompt/).value).toBe("")
+  );
 
   // view questions
   fireEvent.click(screen.queryByText(/View Questions/));
@@ -86,7 +98,10 @@ test("updates the answer when the dropdown is changed", async () => {
     target: { value: "3" },
   });
 
-  expect(screen.queryAllByLabelText(/Correct Answer/)[0].value).toBe("3");
+  // Wait for the dropdown to update asynchronously
+  await waitFor(() => {
+    expect(screen.queryAllByLabelText(/Correct Answer/)[0].value).toBe("3");
+  });
 
   rerender(<App />);
 
