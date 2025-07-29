@@ -98,7 +98,7 @@ test("updates the answer when the dropdown is changed", async () => {
     target: { value: "3" },
   });
 
-  // Wait for the dropdown to update asynchronously
+  // Wait for the dropdown to update asynchronously 1
   await waitFor(() => {
     expect(screen.queryAllByLabelText(/Correct Answer/)[0].value).toBe("3");
   });
